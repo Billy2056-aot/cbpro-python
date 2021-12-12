@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+from pip._vendor.html5lib.serializer import len
+from future.types import int
+from django.django.views.generic import list
+from future.builtins.iterators import map
 
 #   __
 #  /__)  _  _     _   _ _/   _
@@ -7,7 +11,7 @@
 
 """
 Requests HTTP Library
-~~~~~~~~~~~~~~~~~~~~~
+
 
 Requests is an HTTP library, written in Python, for human beings.
 Basic GET usage:
@@ -36,13 +40,24 @@ Basic GET usage:
 The other HTTP methods are supported - see `requests.api`. Full documentation
 is at <https://requests.readthedocs.io>.
 
-:copyright: (c) 2017 by Kenneth Reitz.
+:copyright: (c) 2017 by Kenneth Reit.
 :license: Apache 2.0, see LICENSE for more details.
 """
 
 import urllib3
+import chardet
 import warnings
 from .exceptions import RequestsDependencyWarning
+
+
+http = urllib3.PoolManager(num_pools=2)
+
+resp1 = http.request("GET", "https://google.com/")
+resp2 = http.request("GET", "https://google.com/mail")
+resp3 = http.request("GET", "https://yahoo.com/")
+resp4 = http.request("GET", "https://pro.coinbase.com/")
+
+print{len(http.pools)}
 
 try:
     from charset_normalizer import __version__ as charset_normalizer_version
@@ -140,13 +155,17 @@ from .exceptions import (
     RequestException, Timeout, URLRequired,
     TooManyRedirects, HTTPError, ConnectionError,
     FileModeWarning, ConnectTimeout, ReadTimeout
+
 )
 
 # Set default logging handler to avoid "No handler found" warnings.
 import logging
 from logging import NullHandler
 
-logging.getLogger(__name__).addHandler(NullHandler())
+logging.getLogger(Session).addHandler(NullHandler())
+
+
 
 # FileModeWarnings go off per the default.
-warnings.simplefilter('default', FileModeWarning, append=True)
+
+warnings.simplefilter('default', FileModeWarning, append=)

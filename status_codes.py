@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 l-*-
 
 r"""
 The ``codes`` object defines a mapping from common names for HTTP statuses

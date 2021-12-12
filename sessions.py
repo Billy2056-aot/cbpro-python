@@ -36,6 +36,7 @@ from .status_codes import codes
 
 # formerly defined here, reexposed here for backward compatibility
 from .models import REDIRECT_STATI
+from future.builtins.misc import isinstance
 
 # Preferred clock, based on which one is more accurate on a given system.
 if sys.platform == 'win32':
@@ -779,3 +780,4 @@ def session():
     :rtype: Session
     """
     return Session()
+

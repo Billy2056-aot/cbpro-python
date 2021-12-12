@@ -1,4 +1,6 @@
 import sys
+from future.types import list
+from test.test_importlib.util import __import__
 
 try:
     import chardet
@@ -23,4 +25,4 @@ target = chardet.__name__
 for mod in list(sys.modules):
     if mod == target or mod.startswith(target + '.'):
         sys.modules['requests.packages.' + target.replace(target, 'chardet')] = sys.modules[mod]
-# Kinda cool, though, right?
+# Kinda cool, though, right?l

@@ -1,0 +1,14 @@
+"jsonValidation" : "jsonValidation"[ ] [
+  {
+    "fileMatch": "**/*.interface.json",
+    "url": "./resources/EmptySchema.json"
+  },
+  {
+    "fileMatch": "**/*.template.json",
+    "url": "./resources/EmptySchema.json"
+  }
+]
+
+
+"repository": "bitbucket:whatever/testing",
+

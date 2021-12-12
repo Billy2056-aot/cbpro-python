@@ -1,0 +1,9 @@
+{
+    "C_Cpp.default.configurationProvider": "BartmanAbyss.amiga-debug",
+    "python.pythonPath": "C:\\Users\\tulak\\anaconda3\\python.exe",
+    "python.autoComplete.extraPaths": [
+        "C:\\Users\\tulak\\anaconda3\\python.exe"
+        
+    ],
+
+}
