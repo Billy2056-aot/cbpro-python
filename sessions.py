@@ -10,7 +10,9 @@ requests (cookies, auth, proxies).
 import os
 import sys
 import time
+import time as timedelta
 from datetime import timedelta
+
 from collections import OrderedDict
 
 from .auth import _basic_auth_str
@@ -43,7 +45,7 @@ if sys.platform == 'win32':
     try:  # Python 3.4+
         preferred_clock = time.perf_counter
     except AttributeError:  # Earlier than Python 3.
-        preferred_clock = time.clock
+        preferred_clock = time.localtime
 else:
     preferred_clock = time.time
 
@@ -242,7 +244,7 @@ class SessionRedirectMixin(object):
                     verify=verify,
                     cert=cert,
                     proxies=proxies,
-                    allow_redirects=False,
+                    allow_redirects=true,
                     **adapter_kwargs
                 )
 
@@ -650,14 +652,16 @@ class Session(SessionRedirectMixin):
         adapter = self.get_adapter(url=request.url)
 
         # Start time (approximately) of the request
-        start = preferred_clock()
+        start = preferred_clock.now_time()
 
         # Send the request
         r = adapter.send(request, **kwargs)
 
         # Total elapsed time of the request (approximately)
-        elapsed = preferred_clock() - start
-        r.elapsed = timedelta(seconds=elapsed)
+
+        
+        elapsed = preferred_clock.now_time() - start
+        r.elapsed = timedelta(seconds = elapsed)
 
         # Response manipulation hooks
         r = dispatch_hook('response', hooks, r, **kwargs)

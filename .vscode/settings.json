@@ -5,5 +5,9 @@
         "C:\\Users\\tulak\\anaconda3\\python.exe"
         
     ],
+    "python.analysis.extraPaths": [
+        "C:\\Users\\tulak\\anaconda3\\python.exe"
+    ],
+    "git.autofetch": "all",
 
 }

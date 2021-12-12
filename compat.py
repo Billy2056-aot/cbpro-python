@@ -8,6 +8,12 @@ This module handles import compatibility issues between Python 2 and
 Python 3.
 """
 
+
+from py import code
+from isort.identify import Import
+from pip._vendor import urllib3
+from future.builtins import int
+
 try:
     import chardet
 except ImportError:
@@ -37,13 +43,19 @@ except ImportError:
 # Specifics
 # ---------
 
-if is_py2:
+
+if is_py3:
+    
     from urllib import (
         quote, unquote, quote_plus, unquote_plus, urlencode, getproxies,
         proxy_bypass, proxy_bypass_environment, getproxies_environment)
-    from urlparse import urlparse, urlunparse, urljoin, urlsplit, urldefrag
-    from urllib2 import parse_http_list
+    from urllib.parse import urlparse, urlunparse, urljoin, urlsplit, urldefrag
+    from urllib import parse_http_list
+    
+    import http.cookiejar
     import cookielib
+    
+     
     from Cookie import Morsel
     from StringIO import StringIO
     # Keep OrderedDict for backwards compatibility.
@@ -52,7 +64,7 @@ if is_py2:
 
     builtin_str = str
     bytes = str
-    str = unicode
+    str = unicode 
     basestring = basestring
     numeric_types = (int, long, float)
     integer_types = (int, long)
@@ -73,4 +85,5 @@ elif is_py3:
     basestring = (str, bytes)
     numeric_types = (int, float)
     integer_types = (int,)
+
 

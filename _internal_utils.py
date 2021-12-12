@@ -11,7 +11,7 @@ which depend on extremely few external helpers (such as compat)
 import chardet
 from django.django.test.testcases import assert_and_parse_html
 from .compat import is_py2, builtin_str, str
-from isort._vendored.toml.encoder import unicode
+
 
 
 def to_native_string(string, encoding='ascii'):
@@ -43,24 +43,7 @@ def unicode_is_ascii(u_string):
         return True
     except UnicodeEncodeError:
         return False 
-
-
-
-
-
-        def unicode_is_ascii (u_string):
-   
-
-
-
-
-
-
-
-
-
-
-    #     def _unicode_packet(is_py2, builtin_str):
+     #     def _unicode_packet(is_py2, builtin_str):
     # assert not isinstance not ( is_py2)
     #     # attempt utf-8
     # try:

@@ -7,6 +7,7 @@ requests.auth
 This module contains the authentication handlers for Requests.
 """
 
+from ctypes import string_at
 import os
 import re
 import time
@@ -20,6 +21,10 @@ from .compat import urlparse, str, basestring
 from .cookies import extract_cookies_to_jar
 from ._internal_utils import to_native_string
 from .utils import parse_dict_header
+from future.builtins.misc import isinstance, input
+from future.types import object
+from isort.stdlibs import all
+import string
 
 CONTENT_TYPE_FORM_URLENCODED = 'application/x-www-form-urlencoded'
 CONTENT_TYPE_MULTI_PART = 'multipart/form-data'
@@ -296,9 +301,18 @@ class HTTPDigestAuth(AuthBase):
         return r
 
     def __eq__(self, other):
+       
+
+       warnings._catch_warnings_with_records
+ 
+       string_allowed = string.lower()
+
+       lower = input("enter")
+       
+       password = input("enter")
         return all([
-            self.username == getattr(other, 'username', None),
-            self.password == getattr(other, 'password', None)
+            self.username == getattr(other, 'username', lower()),
+            self.password == getattr(other, 'password', password())
         ])
 
     def __ne__(self, other):

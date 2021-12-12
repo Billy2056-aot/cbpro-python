@@ -1,6 +1,6 @@
 import sys
 from future.types import list
-from test.test_importlib.util import __import__
+
 
 try:
     import chardet

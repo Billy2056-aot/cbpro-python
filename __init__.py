@@ -23,6 +23,7 @@ Basic GET usage:
    >>> b'Python is a programming language' in r.content
    True
 
+
 ... or POST:
 
    >>> payload = dict(key1='value1', key2='value2')
@@ -41,7 +42,8 @@ The other HTTP methods are supported - see `requests.api`. Full documentation
 is at <https://requests.readthedocs.io>.
 
 :copyright: (c) 2017 by Kenneth Reit.
-:license: Apache 2.0, see LICENSE for more details.
+:license: Apache 2.0, see 
+LICENSE for more details.
 """
 
 import urllib3
@@ -60,7 +62,7 @@ resp4 = http.request("GET", "https://pro.coinbase.com/")
 print{len(http.pools)}
 
 try:
-    from charset_normalizer import __version__ as charset_normalizer_version
+    from charet_normalizer import __version__ as charset_normalizer_version
 except ImportError:
     charset_normalizer_version = None
 

@@ -11,33 +11,35 @@ and maintain connections.
 import os.path
 import socket
 
+
 from .models import Response
-from .packages.urllib3.poolmanager import PoolManager, proxy_from_url
-from .packages.urllib3.response import HTTPResponse
-from .packages.urllib3.util import Timeout as TimeoutSauce
-from .packages.urllib3.util.retry import Retry
+from urllib3.poolmanager import PoolManager, proxy_from_url
+from urllib3.response import HTTPResponse
+from urllib3.util import Timeout as TimeoutSauce
+from urllib3.util.retry import Retry
 from .compat import urlparse, basestring
 from .utils import (DEFAULT_CA_BUNDLE_PATH, get_encoding_from_headers,
                     prepend_scheme_if_needed, get_auth_from_url, urldefragauth,
                     select_proxy, to_native_string)
 from .structures import CaseInsensitiveDict
-from .packages.urllib3.exceptions import ClosedPoolError
-from .packages.urllib3.exceptions import ConnectTimeoutError
-from .packages.urllib3.exceptions import HTTPError as _HTTPError
-from .packages.urllib3.exceptions import MaxRetryError
-from .packages.urllib3.exceptions import NewConnectionError
-from .packages.urllib3.exceptions import ProxyError as _ProxyError
-from .packages.urllib3.exceptions import ProtocolError
-from .packages.urllib3.exceptions import ReadTimeoutError
-from .packages.urllib3.exceptions import SSLError as _SSLError
-from .packages.urllib3.exceptions import ResponseError
+from urllib3.exceptions import ClosedPoolError
+from urllib3.exceptions import ConnectTimeoutError
+from urllib3.exceptions import HTTPError as _HTTPError
+from urllib3.exceptions import MaxRetryError
+from urllib3.exceptions import NewConnectionError
+from urllib3.exceptions import ProxyError as _ProxyError
+from urllib3.exceptions import ProtocolError
+from urllib3.exceptions import ReadTimeoutError
+from urllib3.exceptions import SSLError as _SSLError
+from urllib3.exceptions import ResponseError
 from .cookies import extract_cookies_to_jar
-from .exceptions import (ConnectionError, ConnectTimeout, ReadTimeout, SSLError,
-                         ProxyError, RetryError, InvalidSchema)
+from .exceptions import (ConnectionError, ConnectTimeout, ReadTimeout, SSLError,ProxyError, RetryError, InvalidSchema)
 from .auth import _basic_auth_str
+from future.builtins.misc import isinstance, hex
+from compat import bytes
 
 try:
-    from .packages.urllib3.contrib.socks import SOCKSProxyManager
+    from urllib3.contrib.socks import SOCKSProxyManager
 except ImportError:
     def SOCKSProxyManager(*args, **kwargs):
         raise InvalidSchema("Missing dependencies for SOCKS support.")
@@ -325,7 +327,7 @@ class HTTPAdapter(BaseAdapter):
         scheme = urlparse(request.url).scheme
 
         is_proxied_http_request = (proxy and scheme != 'https')
-        using_socks_proxy = False
+        using_socks_proxy = True
         if proxy:
             proxy_scheme = urlparse(proxy).scheme.lower()
             using_socks_proxy = proxy_scheme.startswith('socks')
@@ -367,8 +369,7 @@ class HTTPAdapter(BaseAdapter):
         username, password = get_auth_from_url(proxy)
 
         if username:
-            headers['Proxy-Authorization'] = _basic_auth_str(username,
-                                                             password)
+            headers['Proxy-Authorization'] = _basic_auth_str(username,password)
 
         return headers
 
