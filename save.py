@@ -1,4 +1,4 @@
-"""
+""" 
 A module that brings in equivalents of various modified Python 3 builtins
 into Py2. Has no effect on Py3.
 The builtin functions are:

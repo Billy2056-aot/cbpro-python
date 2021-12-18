@@ -5,13 +5,13 @@
     
     
 
-    // {
-    //   "name": "Python C++ Debugger",
-    //   "type": "pythoncpp",
-    //   "request": "launch",
-    //   "pythonConfig": "default",
-    //   "cppConfig": "!!pick 'default (win) Attach' or 'default (gdb) Attach'"
-    // },
+    {
+      "name": "Python C++ Debugger",
+      "type": "pythoncpp",
+      "request": "launch",
+      "pythonConfig": "default",
+      
+    },
     {
       "name": "Python: Remote Attach",
       "type": "python",

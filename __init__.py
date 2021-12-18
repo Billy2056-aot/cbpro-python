@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-from pip._vendor.html5lib.serializer import len
-from future.types import int
-from django.django.views.generic import list
+
+from cgi import print_form
+import charset_normalizer
+from future.types import int 
+from django.views.generic import list
 from future.builtins.iterators import map
 
 #   __
@@ -47,7 +49,7 @@ LICENSE for more details.
 """
 
 import urllib3
-import chardet
+
 import warnings
 from .exceptions import RequestsDependencyWarning
 
@@ -59,10 +61,8 @@ resp2 = http.request("GET", "https://google.com/mail")
 resp3 = http.request("GET", "https://yahoo.com/")
 resp4 = http.request("GET", "https://pro.coinbase.com/")
 
-print{len(http.pools)}
-
 try:
-    from charet_normalizer import __version__ as charset_normalizer_version
+    from charset_normalizer import __version__ as charset_normalizer_version
 except ImportError:
     charset_normalizer_version = None
 
@@ -106,7 +106,7 @@ def _check_cryptography(cryptography_version):
     try:
         cryptography_version = list(map(int, cryptography_version.split('.')))
     except ValueError:
-        return
+        return cryptography_versions
 
     if cryptography_version < [1, 3, 4]:
         warning = 'Old version of cryptography ({}) may cause slowdown.'.format(cryptography_version)
@@ -164,10 +164,10 @@ from .exceptions import (
 import logging
 from logging import NullHandler
 
-logging.getLogger(Session).addHandler(NullHandler())
+logging.getLogger(__name__).addHandler(NullHandler())
 
 
 
 # FileModeWarnings go off per the default.
 
-warnings.simplefilter('default', FileModeWarning, append=)
+warnings.simplefilter('default', FileModeWarning, append=True)

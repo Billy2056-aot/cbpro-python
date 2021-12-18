@@ -246,7 +246,7 @@ class HTTPAdapter(BaseAdapter):
         :class:`HTTPAdapter <requests.adapters.HTTPAdapter>`
 
         :param req: The :class:`PreparedRequest <PreparedRequest>` used to generate the response.
-        :param resp: The urllib3 response object.
+        :param resp: The urllib3 response object. 
         :rtype: requests.Response
         """
         response = Response()

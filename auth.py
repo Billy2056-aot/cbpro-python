@@ -273,7 +273,7 @@ class HTTPDigestAuth(AuthBase):
                 prep.method, prep.url)
             _r = r.connection.send(prep, **kwargs)
             _r.history.append(r)
-            _r.request = prep
+            _r.request = prep 
 
             return _r
 
@@ -316,4 +316,4 @@ class HTTPDigestAuth(AuthBase):
         ])
 
     def __ne__(self, other):
-        return not self == other
+        return not self == other 

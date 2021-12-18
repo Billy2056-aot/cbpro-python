@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-  
 
 """
-requests.exceptions
+requests.exceptions 
 ~~~~~~~~~~~~~~~~~~~
 
 This module contains the set of Requests' exceptions.
 """
+from urllib import request
 from urllib3.exceptions import HTTPError as BaseHTTPError
 
 
@@ -21,7 +22,7 @@ class RequestException(IOError):
         self.request = kwargs.pop('request', None)
         if (response is not None and not self.request and
                 hasattr(response, 'request')):
-            self.request = self.response.request
+            self.request = self.response and request
         super(RequestException, self).__init__(*args, **kwargs)
 
 

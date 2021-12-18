@@ -15,7 +15,6 @@ from pickletools import string4
 import re
 import socket
 from ssl import _PasswordType
-import string
 import struct
 import sys
 import tempfile
@@ -34,7 +33,7 @@ from .compat import parse_http_list as _parse_list_header
 from .compat import (
     quote, urlparse, bytes, str, unquote, getproxies,
     proxy_bypass, urlunparse, basestring, integer_types, is_py3,
-    proxy_bypass_environment, getproxies_environment, Mapping)
+    Mapping)
 from .cookies import cookiejar_from_dict
 from .structures import CaseInsensitiveDict
 from .exceptions import (

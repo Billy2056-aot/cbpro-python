@@ -1,18 +1,8 @@
-# -*- coding: utf-8 -*-
 
-"""
-requests.sessions
-~~~~~~~~~~~~~~~~~
-
-This module provides a Session object to manage and persist settings across
-requests (cookies, auth, proxies).
-"""
 import os
 import sys
 import time
-import time as timedelta
 from datetime import timedelta
-
 from collections import OrderedDict
 
 from .auth import _basic_auth_str
@@ -38,14 +28,13 @@ from .status_codes import codes
 
 # formerly defined here, reexposed here for backward compatibility
 from .models import REDIRECT_STATI
-from future.builtins.misc import isinstance
 
 # Preferred clock, based on which one is more accurate on a given system.
 if sys.platform == 'win32':
     try:  # Python 3.4+
         preferred_clock = time.perf_counter
     except AttributeError:  # Earlier than Python 3.
-        preferred_clock = time.localtime
+        preferred_clock = time.monotonic
 else:
     preferred_clock = time.time
 
@@ -244,7 +233,7 @@ class SessionRedirectMixin(object):
                     verify=verify,
                     cert=cert,
                     proxies=proxies,
-                    allow_redirects=true,
+                    allow_redirects=False,
                     **adapter_kwargs
                 )
 
@@ -390,13 +379,6 @@ class Session(SessionRedirectMixin):
         self.stream = False
 
         #: SSL Verification default.
-        #: Defaults to `True`, requiring requests to verify the TLS certificate at the
-        #: remote end.
-        #: If verify is set to `False`, requests will accept any TLS certificate
-        #: presented by the server, and will ignore hostname mismatches and/or
-        #: expired certificates, which will make your application vulnerable to
-        #: man-in-the-middle (MitM) attacks.
-        #: Only set this to `False` for testing.
         self.verify = True
 
         #: SSL client certificate default, if String, path to ssl client
@@ -505,12 +487,7 @@ class Session(SessionRedirectMixin):
             content. Defaults to ``False``.
         :param verify: (optional) Either a boolean, in which case it controls whether we verify
             the server's TLS certificate, or a string, in which case it must be a path
-            to a CA bundle to use. Defaults to ``True``. When set to
-            ``False``, requests will accept any TLS certificate presented by
-            the server, and will ignore hostname mismatches and/or expired
-            certificates, which will make your application vulnerable to
-            man-in-the-middle (MitM) attacks. Setting verify to ``False`` 
-            may be useful during local development or testing.
+            to a CA bundle to use. Defaults to ``True``.
         :param cert: (optional) if String, path to ssl client cert file (.pem).
             If Tuple, ('cert', 'key') pair.
         :rtype: requests.Response
@@ -636,7 +613,7 @@ class Session(SessionRedirectMixin):
         kwargs.setdefault('stream', self.stream)
         kwargs.setdefault('verify', self.verify)
         kwargs.setdefault('cert', self.cert)
-        kwargs.setdefault('proxies', self.rebuild_proxies(request, self.proxies))
+        kwargs.setdefault('proxies', self.proxies)
 
         # It's possible that users might accidentally send a Request object.
         # Guard against that specific failure case.
@@ -652,16 +629,14 @@ class Session(SessionRedirectMixin):
         adapter = self.get_adapter(url=request.url)
 
         # Start time (approximately) of the request
-        start = preferred_clock.now_time()
+        start = preferred_clock()
 
         # Send the request
         r = adapter.send(request, **kwargs)
 
         # Total elapsed time of the request (approximately)
-
-        
-        elapsed = preferred_clock.now_time() - start
-        r.elapsed = timedelta(seconds = elapsed)
+        elapsed = preferred_clock() - start
+        r.elapsed = timedelta(seconds=elapsed)
 
         # Response manipulation hooks
         r = dispatch_hook('response', hooks, r, **kwargs)
@@ -675,13 +650,11 @@ class Session(SessionRedirectMixin):
 
         extract_cookies_to_jar(self.cookies, request, r.raw)
 
+        # Redirect resolving generator.
+        gen = self.resolve_redirects(r, request, **kwargs)
+
         # Resolve redirects if allowed.
-        if allow_redirects:
-            # Redirect resolving generator.
-            gen = self.resolve_redirects(r, request, **kwargs)
-            history = [resp for resp in gen]
-        else:
-            history = []
+        history = [resp for resp in gen] if allow_redirects else []
 
         # Shuffle things around if there's history.
         if history:
@@ -784,4 +757,3 @@ def session():
     :rtype: Session
     """
     return Session()
-

@@ -32,8 +32,7 @@ from urllib3.exceptions import ResponseError
 from urllib3.exceptions import LocationValueError
 
 from .models import Response
-from .compat import urlparse
-, basestring
+from .compat import urlparse, basestring
 from .utils import (DEFAULT_CA_BUNDLE_PATH, extract_zipped_paths,
                     get_encoding_from_headers, prepend_scheme_if_needed,
                     get_auth_from_url, urldefragauth, select_proxy)
@@ -267,7 +266,7 @@ class HTTPAdapter(BaseAdapter):
         :rtype: requests.Response
         """
         response = Response()
-
+ 
         # Fallback to None if there's no status_code, for whatever reason.
         response.status_code = getattr(resp, 'status', None)
 

@@ -19,5 +19,5 @@ def RequestTimefromNtp(addr='0.de.pool.ntp.org'):
         t -= REF_TIME_1970
     return time.time(t), t
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     print(RequestTimefromNtp())

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-  
 
 """
 requests.compat
@@ -13,6 +13,9 @@ from py import code
 from isort.identify import Import
 from pip._vendor import urllib3
 from future.builtins import int
+from chardet import universaldetector
+
+
 
 try:
     import chardet
@@ -50,29 +53,25 @@ if is_py3:
         quote, unquote, quote_plus, unquote_plus, urlencode, getproxies,
         proxy_bypass, proxy_bypass_environment, getproxies_environment)
     from urllib.parse import urlparse, urlunparse, urljoin, urlsplit, urldefrag
-    from urllib import parse_http_list
-    
-    import http.cookiejar
-    import cookielib
-    
-     
-    from Cookie import Morsel
-    from StringIO import StringIO
-    # Keep OrderedDict for backwards compatibility.
+    from urllib.request import parse_http_list
+            
+  
+    from io import StringIO
+        # Keep OrderedDict for backwards compatibility.
     from collections import Callable, Mapping, MutableMapping, OrderedDict
 
-
+    text = StringIO
     builtin_str = str
     bytes = str
-    str = unicode 
-    basestring = basestring
-    numeric_types = (int, long, float)
-    integer_types = (int, long)
+    str = (text, 'utf-8')
+    basestring = str
+    numeric_types = (int, sys.maxsize, float)
+    integer_types = (int, sys.maxsize)
 
 elif is_py3:
     from urllib.parse import urlparse, urlunparse, urljoin, urlsplit, urlencode, quote, unquote, quote_plus, unquote_plus, urldefrag
     from urllib.request import parse_http_list, getproxies, proxy_bypass, proxy_bypass_environment, getproxies_environment
-    from http import cookiejar as cookielib
+    from http import cookiejar as cookiejar
     from http.cookies import Morsel
     from io import StringIO
     # Keep OrderedDict for backwards compatibility.

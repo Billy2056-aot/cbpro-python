@@ -2,7 +2,7 @@
 
 """
 requests.hooks
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~  
 
 This module provides the capabilities for the Requests hooks system.
 

@@ -1,61 +1,92 @@
 # -*- coding: utf-8 -*-
-
+  
 """
-requests.models
-~~~~~~~~~~~~~~~
-
+requests.models 
+~~~~~~~~~~~~~~~  
+  
 This module contains the primary objects that power Requests.
 """
-
-import datetime
 import sys
-
+import datetime
+from json.decoder import JSONDecodeError, JSONDecoder
+from json.encoder import JSONEncoder
+import unicodedata
+import requests
+from django.shortcuts import render
+from django.http import HttpResponse
+from django.conf import settings
+from importlib import import_module
+from requests import HTTPError
+from http.cookiejar import CookieJar
+import json
+import builtins as message
 # Import encoding now, to avoid implicit import later.
 # Implicit import within threads may cause LookupError when standard library is in a ZIP,
 # such as in Embedded Python. See https://github.com/psf/requests/issues/3578.
-import encodings.idna
 
+import encodings.idna
 from urllib3.fields import RequestField
 from urllib3.filepost import encode_multipart_formdata
+
 from urllib3.util import parse_url
 from urllib3.exceptions import (
     DecodeError, ReadTimeoutError, ProtocolError, LocationParseError)
 
 from io import UnsupportedOperation
-from .hooks import default_hooks
-from .structures import CaseInsensitiveDict
+from api import request
+from hooks import default_hooks
+from structures import CaseInsensitiveDict
 
-from .auth import HTTPBasicAuth
-from .cookies import cookiejar_from_dict, get_cookie_header, _copy_cookie_jar
-from .exceptions import (
+from auth import HTTPBasicAuth
+from cookies import cookiejar_from_dict, get_cookie_header, _copy_cookie_jar
+from exceptions import (
     HTTPError, MissingSchema, InvalidURL, ChunkedEncodingError,
-    ContentDecodingError, ConnectionError, StreamConsumedError, InvalidJSONError)
-from ._internal_utils import to_native_string, unicode_is_ascii
-from .utils import (
+    ContentDecodingError, ConnectionError, StreamConsumedError, InvalidJSONError ,  )
+
+# from exceptions import json.JSONDecoder as RequestsJSONDecodeError
+from _internal_utils import to_native_string, unicode_is_ascii
+from utils import (
     guess_filename, get_auth_from_url, requote_uri,
     stream_decode_response_unicode, to_key_val_list, parse_header_links,
     iter_slices, guess_json_utf, super_len, check_header_validity)
-from .compat import (
-    Callable, Mapping,
-    cookielib, urlunparse, urlsplit, urlencode, str, bytes,
-    is_py2, chardet, builtin_str, basestring)
-from .compat import json as complexjson
-from .status_codes import codes
+from compat import (
+    Callable, Mapping, urlunparse, urlsplit, urlencode, str, bytes,
+    is_py3, chardet, builtin_str, basestring  )
+from compat import json as complexjson
+from status_codes import codes
 
-#: The set of HTTP status codes that indicate an automatically
-#: processable redirect.
-REDIRECT_STATI = (
-    codes.moved,               # 301
-    codes.found,               # 302
-    codes.other,               # 303
-    codes.temporary_redirect,  # 307
-    codes.permanent_redirect,  # 308
-)
 
-DEFAULT_REDIRECT_LIMIT = 30
-CONTENT_CHUNK_SIZE = 10 * 1024
-ITER_CHUNK_SIZE = 512
 
+# : The set of HTTP status codes that indicate an automatically
+# : processable redirect.
+# def new_func(): 
+#     REDIRECT_STATI = (
+#     codes.moved,               # 301
+#     codes.found,               # 302
+#     codes.other,               # 303
+#     codes.temporary_redirect,  # 307
+#     codes.permanent_redirect,  # 308
+# )
+    
+#     return REDIRECT_STATI
+
+# REDIRECT_STATI = new_func()
+
+# DEFAULT_REDIRECT_LIMIT = 30
+# CONTENT_CHUNK_SIZE = 10 * 1024
+# ITER_CHUNK_SIZE = 512
+
+SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
+
+def login(request):
+    if request.method == 'POST':
+        if request.session.test_cookie_worked():
+            request.session.delete_test_cookie()
+            return HttpResponse("You're logged in.")
+        else:
+            return HttpResponse("Please enable cookies and try again.")
+    request.session.set_test_cookie()
+    return render(request, 'foo/login_form.html')
 
 class RequestEncodingMixin(object):
     @property
@@ -64,7 +95,7 @@ class RequestEncodingMixin(object):
 
         url = []
 
-        p = urlsplit(self.url)
+        p = urlsplit(self.path_url)
 
         path = p.path
         if not path:
@@ -94,7 +125,8 @@ class RequestEncodingMixin(object):
             return data
         elif hasattr(data, '__iter__'):
             result = []
-            for k, vs in to_key_val_list(data):
+            for k, vs in to_key_val_list (data):
+                
                 if isinstance(vs, basestring) or not hasattr(vs, '__iter__'):
                     vs = [vs]
                 for v in vs:
@@ -122,8 +154,8 @@ class RequestEncodingMixin(object):
             raise ValueError("Data must not be a string.")
 
         new_fields = []
-        fields = to_key_val_list(data or {})
-        files = to_key_val_list(files or {})
+        fields = to_key_val_list(data or {''})
+        files = to_key_val_list(files or {''})
 
         for field, val in fields:
             if isinstance(val, basestring) or not hasattr(val, '__iter__'):
@@ -173,6 +205,7 @@ class RequestEncodingMixin(object):
 
 class RequestHooksMixin(object):
     def register_hook(self, event, hook):
+        self.hooks = request.Session()
         """Properly register a hook."""
 
         if event not in self.hooks:
@@ -201,7 +234,7 @@ class Request(RequestHooksMixin):
     Used to prepare a :class:`PreparedRequest <PreparedRequest>`, which is sent to the server.
 
     :param method: HTTP method to use.
-    :param url: URL to send.
+    :param url: URL to send.0
     :param headers: dictionary of headers to send.
     :param files: dictionary of {filename: fileobject} files to multipart upload.
     :param data: the body to attach to the request. If a dictionary or
@@ -309,7 +342,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
 
     def prepare(self,
             method=None, url=None, headers=None, files=None, data=None,
-            params=None, auth=None, cookies=None, hooks=None, json=None):
+            params=None, auth=None, cookies=None, hooks=None, json=None, ):
         """Prepares the entire request with the given parameters."""
 
         self.prepare_method(method)
@@ -365,7 +398,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         if isinstance(url, bytes):
             url = url.decode('utf8')
         else:
-            url = unicode(url) if is_py2 else str(url)
+            url = unicodedata.__builtins__(url) if is_py3 else str(url)
 
         # Remove leading whitespaces from url
         url = url.lstrip()
@@ -416,7 +449,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         if not path:
             path = '/'
 
-        if is_py2:
+        if is_py3:
             if isinstance(scheme, str):
                 scheme = scheme.encode('utf-8')
             if isinstance(netloc, str):
@@ -454,14 +487,14 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
 
     def prepare_body(self, data, files, json=None):
         """Prepares the given HTTP body data."""
-
+    
         # Check if file, fo, generator, iterator.
         # If not, run through normal process.
 
         # Nottin' on you.
         body = None
         content_type = None
-
+        self.headers = request.Session()
         if not data and json is not None:
             # urllib3 requires a bytes-like body. Python 2's json.dumps
             # provides this natively, but Python 3 gives a Unicode string.
@@ -528,6 +561,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
 
     def prepare_content_length(self, body):
         """Prepare Content-Length header based on request method and body"""
+        self.headers = request.Session()
         if body is not None:
             length = super_len(body)
             if length:
@@ -539,7 +573,8 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
             # but don't provide one. (i.e. not GET or HEAD)
             self.headers['Content-Length'] = '0'
 
-    def prepare_auth(self, auth, url=''):
+    def prepare_auth(self, auth):
+        self.headers = request.Session()
         """Prepares the given HTTP auth data."""
 
         # If no Auth is explicitly provided, extract it from the URL first.
@@ -553,7 +588,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
                 auth = HTTPBasicAuth(*auth)
 
             # Allow auth to make its changes.
-            r = auth(self)
+            r = auth=(self)
 
             # Update self to reflect the auth changes.
             self.__dict__.update(r.__dict__)
@@ -562,6 +597,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
             self.prepare_content_length(self.body)
 
     def prepare_cookies(self, cookies):
+        self.headers = request.Session()
         """Prepares the given HTTP cookie data.
 
         This function eventually generates a ``Cookie`` header from the
@@ -572,7 +608,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         to ``prepare_cookies`` will have no actual effect, unless the "Cookie"
         header is removed beforehand.
         """
-        if isinstance(cookies, cookielib.CookieJar):
+        if isinstance(cookies, cookies.cookiejar):
             self._cookies = cookies
         else:
             self._cookies = cookiejar_from_dict(cookies)
@@ -602,13 +638,13 @@ class Response(object):
     ]
 
     def __init__(self):
+        self.headers = request.Session()
         self._content = False
         self._content_consumed = False
         self._next = None
 
         #: Integer Code of responded HTTP Status, e.g. 404 or 200.
-        self.status_code = None
-
+        self.status_code = HTTPError
         #: Case-insensitive Dictionary of Response Headers.
         #: For example, ``headers['content-encoding']`` will return the
         #: value of a ``'Content-Encoding'`` response header.
@@ -717,12 +753,12 @@ class Response(object):
         """True if this Response is a well-formed HTTP redirect that could have
         been processed automatically (by :meth:`Session.resolve_redirects`).
         """
-        return ('location' in self.headers and self.status_code in REDIRECT_STATI)
+        return ('location' in self.headers and self.status_code in self.headers['location'])
 
     @property
     def is_permanent_redirect(self):
         """True if this Response one of the permanent versions of redirect."""
-        return ('location' in self.headers and self.status_code in (codes.moved_permanently, codes.permanent_redirect))
+        return ('location' in self.headers and self.status_code in (codes.get, codes.update))
 
     @property
     def next(self):
@@ -731,8 +767,12 @@ class Response(object):
 
     @property
     def apparent_encoding(self):
+        code = 0 
+                
+            
         """The apparent encoding, provided by the charset_normalizer or chardet libraries."""
-        return chardet.detect(self.content)['encoding']
+        return chardet.detect(self.content).get ('encoding')
+    
 
     def iter_content(self, chunk_size=1, decode_unicode=False):
         """Iterates over the response data.  When stream=True is set on the
@@ -755,7 +795,7 @@ class Response(object):
             # Special case for urllib3.
             if hasattr(self.raw, 'stream'):
                 try:
-                    for chunk in self.raw.stream(chunk_size, decode_content=True):
+                    for chunk in self.raw.stream (chunk_size, decode_content=True):
                         yield chunk
                 except ProtocolError as e:
                     raise ChunkedEncodingError(e)
@@ -823,9 +863,11 @@ class Response(object):
     @property
     def content(self):
         """Content of the response, in bytes."""
-
+        
+        self = request.Session()
         if self._content is False:
             # Read the contents.
+            
             if self._content_consumed:
                 raise RuntimeError(
                     'The content for this response was already consumed')
@@ -833,6 +875,7 @@ class Response(object):
             if self.status_code == 0 or self.raw is None:
                 self._content = None
             else:
+                
                 self._content = b''.join(self.iter_content(CONTENT_CHUNK_SIZE)) or b''
 
         self._content_consumed = True
@@ -854,19 +897,22 @@ class Response(object):
         """
 
         # Try charset from content-type
-        content = None
+        
+        content = None 
         encoding = self.encoding
-
+                
         if not self.content:
-            return str('')
+            return str()
 
         # Fallback to auto-detected encoding.
-        if self.encoding is None:
+        if self.encoding is str:
             encoding = self.apparent_encoding
 
         # Decode unicode from given encoding.
         try:
-            content = str(self.content, encoding, errors='replace')
+            encoding = self.encoding
+            content = str(self.apparent_encoding)
+                # self.content, encoding, errors='replace'
         except (LookupError, TypeError):
             # A LookupError is raised if the encoding was not found which could
             # indicate a misspelling or similar mistake.
@@ -907,7 +953,16 @@ class Response(object):
                     # and the server didn't bother to tell us what codec *was*
                     # used.
                     pass
-        return complexjson.loads(self.text, **kwargs)
+        try:
+            return complexjson.loads(self.text, **kwargs)
+        except json.JSONDecodeError as e:
+            # Catch JSON-related errors and raise as requests.JSONDecodeError
+            # This aliases json.JSONDecodeError and simplejson.JSONDecodeError
+            if is_py3: # e is a ValueError
+                
+                raise json.decoder (e.message)
+            else:
+                raise json.JSONDecodeError  (e.msg, e.doc, e.pos)
 
     @property
     def links(self):
@@ -929,7 +984,7 @@ class Response(object):
 
     def raise_for_status(self):
         """Raises :class:`HTTPError`, if one occurred."""
-
+        self.status_code in REDIRECT_STATI
         http_error_msg = ''
         if isinstance(self.reason, bytes):
             # We attempt to decode utf-8 first because some servers
@@ -943,10 +998,10 @@ class Response(object):
         else:
             reason = self.reason
 
-        if 400 <= self.status_code < 500:
+        if 400 <= self.status_codes < 500:
             http_error_msg = u'%s Client Error: %s for url: %s' % (self.status_code, reason, self.url)
 
-        elif 500 <= self.status_code < 600:
+        elif 500 <= self.status_codes < 600:
             http_error_msg = u'%s Server Error: %s for url: %s' % (self.status_code, reason, self.url)
 
         if http_error_msg:
@@ -963,4 +1018,4 @@ class Response(object):
 
         release_conn = getattr(self.raw, 'release_conn', None)
         if release_conn is not None:
-            release_conn()
+            release_conn() 

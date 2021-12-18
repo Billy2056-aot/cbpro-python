@@ -1,8 +1,7 @@
 """Module containing bug report helper(s)."""
 from __future__ import print_function
 
-import urllib3
-
+import urllib3 
 from . import __version__ as requests_version
 
 try:

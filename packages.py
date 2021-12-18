@@ -1,6 +1,6 @@
 import sys
 from future.types import list
-
+ 
 
 try:
     import chardet
