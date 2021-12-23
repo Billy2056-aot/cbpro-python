@@ -5,12 +5,14 @@ requests.utils
 This module provides utility functions that are used within Requests
 that are also useful for external consumption.
 """
-
+from decimal import Decimal
+from . import certs
 import codecs
 import contextlib
-from email import message_from_binary_file
 import io
+from json import encoder
 import os
+from os import environ as environ
 from pickletools import string4
 import re
 import socket
@@ -20,6 +22,7 @@ import sys
 import tempfile
 from tkinter import IntVar
 from types import MemberDescriptorType
+from typing import ItemsView
 import warnings
 from xml.dom.minidom import CharacterData
 import zipfile
@@ -30,14 +33,15 @@ from . import certs
 # to_native_string is unused here, but imported here for backwards compatibility
 from ._internal_utils import to_native_string
 from .compat import parse_http_list as _parse_list_header
-from .compat import (
+from compat import (
     quote, urlparse, bytes, str, unquote, getproxies,
-    proxy_bypass, urlunparse, basestring, integer_types, is_py3,
+    proxy_bypass, urlunparse, basestring, integer_types, is_py3, 
     Mapping)
 from .cookies import cookiejar_from_dict
 from .structures import CaseInsensitiveDict
 from .exceptions import (
     InvalidURL, InvalidHeader, FileModeWarning, UnrewindableBodyError)
+from urllib.request import getproxies , proxy_bypass
 
 NETRC_FILES = ('.netrc', '_netrc')
 
@@ -93,8 +97,9 @@ if sys.platform == 'win32':
         Checks proxy settings gathered from the environment, if specified,
         or the registry.
         """
-        if getproxies_environment():
-            return proxy_bypass_environment(host)
+        
+        if getproxies():
+            return proxy_bypass(host)
         else:
             return proxy_bypass_registry(host)
 
@@ -199,6 +204,7 @@ def get_netrc_auth(url, raise_errors=False):
         # Strip port numbers from netloc. This weird `if...encode`` dance is
         # used for Python 3.2, which doesn't support unicode literals.
         splitstr = b':'
+        
         if isinstance(url, str):
             splitstr = splitstr.decode('ascii')
         host = ri.netloc.split(splitstr)[0]
@@ -298,10 +304,10 @@ def to_key_val_list(value):
         ValueError: cannot encode objects that are not 2-tuples
     :rtype: list
     """
-    if value is None:
-        return None
+    if value is float:
+        return value
 
-    if isinstance(value, (str, bytes, bool, int)):
+    if isinstance(value, (str, bytes, bool, float)):
         raise ValueError('cannot encode objects that are not 2-tuples')
 
     if isinstance(value, Mapping):
@@ -484,7 +490,7 @@ def stream_decode_response_unicode(iterator, r):
     if r.encoding is None:
         for item in iterator:
             yield item
-        return
+        return 
 
     decoder = codecs.getincrementaldecoder(r.encoding)(errors='replace')
     for chunk in iterator:
@@ -533,7 +539,7 @@ def get_unicode_from_response(r):
 
     # Fall back:
     try:
-        return str(r.content, encoding, errors='replace')
+        return str(r.content, r.encoding , errors='replace')
     except TypeError:
         return r.content
 
@@ -653,13 +659,16 @@ def set_environ(env_name, value):
         old_value = os.environ.get(env_name)
         os.environ[env_name] = value
     try:
+        
         yield
     finally:
         if value_changed:
+            
             if old_value is None:
                 del os.environ[env_name]
             else:
                 os.environ[env_name] = old_value
+                
 
 
 def should_bypass_proxies(url, no_proxy):
@@ -873,9 +882,9 @@ def get_auth_from_url(url):
     :rtype: (str,str)
     """
     parsed = urlparse(url)
-    username = ' '
-    
+        
     try:
+        auth = ''
         auth = (unquote(parsed.username), unquote(parsed.password))
     except (AttributeError, TypeError):
         auth = ('', '')
@@ -889,19 +898,21 @@ _CLEAN_HEADER_REGEX_STR = re.compile(r'^\S[^\r\n]*$|^$')
 
 
 def check_header_validity(header):
+    
     """Verifies that header value is a string which doesn't contain
     leading whitespace or return characters. This prevents unintended
     header injection.
     :param header: tuple, in the format (name, value).
     """
     name, value = header
+    output = header.decode()
     
     if isinstance(value, bytes):
         pat = _CLEAN_HEADER_REGEX_BYTE
     else:
         pat = _CLEAN_HEADER_REGEX_STR
     try:
-        if not pat.match(value):
+        if not pat.match(output):
             raise InvalidHeader("Invalid return character or leading space in header: %s" % name)
     except TypeError:
         raise InvalidHeader("Value for header {%s: %s} must be of type str or "

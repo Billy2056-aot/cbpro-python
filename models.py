@@ -6,12 +6,17 @@ requests.models
   
 This module contains the primary objects that power Requests.
 """
-import sys
+MAX_char = 1024
+
+
+
+import json
+from urllib3.packages.six import StringIO
+from urllib3.util import parse_url
 import datetime
 from json.decoder import JSONDecodeError, JSONDecoder
 from json.encoder import JSONEncoder
 import unicodedata
-import requests
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
@@ -23,37 +28,32 @@ import builtins as message
 # Import encoding now, to avoid implicit import later.
 # Implicit import within threads may cause LookupError when standard library is in a ZIP,
 # such as in Embedded Python. See https://github.com/psf/requests/issues/3578.
-
-import encodings.idna
 from urllib3.fields import RequestField
 from urllib3.filepost import encode_multipart_formdata
-
 from urllib3.util import parse_url
 from urllib3.exceptions import (
     DecodeError, ReadTimeoutError, ProtocolError, LocationParseError)
-
 from io import UnsupportedOperation
 from api import request
 from hooks import default_hooks
 from structures import CaseInsensitiveDict
-
 from auth import HTTPBasicAuth
 from cookies import cookiejar_from_dict, get_cookie_header, _copy_cookie_jar
 from exceptions import (
     HTTPError, MissingSchema, InvalidURL, ChunkedEncodingError,
     ContentDecodingError, ConnectionError, StreamConsumedError, InvalidJSONError ,  )
-
 # from exceptions import json.JSONDecoder as RequestsJSONDecodeError
 from _internal_utils import to_native_string, unicode_is_ascii
 from utils import (
     guess_filename, get_auth_from_url, requote_uri,
     stream_decode_response_unicode, to_key_val_list, parse_header_links,
-    iter_slices, guess_json_utf, super_len, check_header_validity)
+    iter_slices, guess_json_utf, super_len, check_header_validity )
 from compat import (
     Callable, Mapping, urlunparse, urlsplit, urlencode, str, bytes,
     is_py3, chardet, builtin_str, basestring  )
 from compat import json as complexjson
 from status_codes import codes
+
 
 
 
@@ -126,7 +126,7 @@ class RequestEncodingMixin(object):
         elif hasattr(data, '__iter__'):
             result = []
             for k, vs in to_key_val_list (data):
-                
+                                        
                 if isinstance(vs, basestring) or not hasattr(vs, '__iter__'):
                     vs = [vs]
                 for v in vs:
@@ -287,7 +287,7 @@ class Request(RequestHooksMixin):
     def prepare(self):
         """Constructs a :class:`PreparedRequest <PreparedRequest>` for transmission and returns it."""
         p = PreparedRequest()
-        p.prepare(
+        p.prepares(
             method=self.method,
             url=self.url,
             headers=self.headers,
@@ -340,7 +340,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         #: integer denoting starting position of a readable file-like body.
         self._body_position = None
 
-    def prepare(self,
+    def prepares(self,
             method=None, url=None, headers=None, files=None, data=None,
             params=None, auth=None, cookies=None, hooks=None, json=None, ):
         """Prepares the entire request with the given parameters."""
@@ -350,7 +350,8 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         self.prepare_headers(headers)
         self.prepare_cookies(cookies)
         self.prepare_body(data, files, json)
-        self.prepare_auth(auth, url)
+        self.prepare_auth(auth, )
+        
 
         # Note that prepare_auth must be last to enable authentication schemes
         # such as OAuth to work on a fully prepared request.
@@ -639,9 +640,18 @@ class Response(object):
 
     def __init__(self):
         self.headers = request.Session()
-        self._content = False
-        self._content_consumed = False
+        self._content = not None
+        self._content_consumed = not None
         self._next = None
+        self.request = not None
+        self.encoding = not None
+        self.decoding = not None 
+        self.raw = not None
+        self.url = not None 
+        self.status_code = not None
+        self.cookies = not None
+        self.reason = not None
+        
 
         #: Integer Code of responded HTTP Status, e.g. 404 or 200.
         self.status_code = HTTPError
@@ -653,7 +663,7 @@ class Response(object):
         #: File-like object representation of response (for advanced usage).
         #: Use of ``raw`` requires that ``stream=True`` be set on the request.
         #: This requirement does not apply for use internally to Requests.
-        self.raw = None
+        self.raw = not None
 
         #: Final URL location of Response.
         self.url = None
@@ -682,7 +692,7 @@ class Response(object):
 
         #: The :class:`PreparedRequest <PreparedRequest>` object to which this
         #: is a response.
-        self.request = None
+        self.request = not None
 
     def __enter__(self):
         return self
@@ -731,7 +741,7 @@ class Response(object):
 
     def __iter__(self):
         """Allows you to use a response as an iterator."""
-        return self.iter_content(128)
+        return self.iter_content(1024)
 
     @property
     def ok(self):
@@ -767,14 +777,12 @@ class Response(object):
 
     @property
     def apparent_encoding(self):
-        code = 0 
-                
-            
         """The apparent encoding, provided by the charset_normalizer or chardet libraries."""
-        return chardet.detect(self.content).get ('encoding')
+        return chardet.detect(str.encode('')).get ('encoding')
+        
     
 
-    def iter_content(self, chunk_size=1, decode_unicode=False):
+    def iter_content(self, chunk_size=int, decode_unicode=True ):
         """Iterates over the response data.  When stream=True is set on the
         request, this avoids reading the content at once into memory for
         large responses.  The chunk size is the number of bytes it should
@@ -793,8 +801,11 @@ class Response(object):
 
         def generate():
             # Special case for urllib3.
-            if hasattr(self.raw, 'stream'):
+            
+            if hasattr (self.raw ,'stream'):
+                 
                 try:
+                    
                     for chunk in self.raw.stream (chunk_size, decode_content=True):
                         yield chunk
                 except ProtocolError as e:
@@ -803,17 +814,19 @@ class Response(object):
                     raise ContentDecodingError(e)
                 except ReadTimeoutError as e:
                     raise ConnectionError(e)
+                
             else:
+                
                 # Standard file-like object.
                 while True:
-                    chunk = self.raw.read(chunk_size)
-                    if not chunk:
+                    chunk = self.raw.read (chunk_size)
+                    if not chunk: 
                         break
                     yield chunk
 
             self._content_consumed = True
 
-        if self._content_consumed and isinstance(self._content, bool):
+        if self._content_consumed and isinstance(self._content, bool ):
             raise StreamConsumedError()
         elif chunk_size is not None and not isinstance(chunk_size, int):
             raise TypeError("chunk_size must be an int, it is instead a %s." % type(chunk_size))
@@ -828,8 +841,12 @@ class Response(object):
             chunks = stream_decode_response_unicode(chunks, self)
 
         return chunks
-
-    def iter_lines(self, chunk_size=ITER_CHUNK_SIZE, decode_unicode=False, delimiter=None):
+    ITER_CHUNK_SIZE = int 
+        
+        
+    
+    
+    def iter_lines(self, chunk_size=ITER_CHUNK_SIZE , decode_unicode=False, delimiter=None):
         """Iterates over the response data, one line at a time.  When
         stream=True is set on the request, this avoids reading the
         content at once into memory for large responses.
@@ -876,7 +893,7 @@ class Response(object):
                 self._content = None
             else:
                 
-                self._content = b''.join(self.iter_content(CONTENT_CHUNK_SIZE)) or b''
+                self._content = b''.join(self.iter_content()) or b''
 
         self._content_consumed = True
         # don't need to release the connection; that's been handled by urllib3
@@ -938,7 +955,7 @@ class Response(object):
 
         if not self.encoding and self.content and len(self.content) > 3:
             # No encoding set. JSON RFC 4627 section 3 states we should expect
-            # UTF-8, -16 or -32. Detect which one to use; If the detection or
+            # UTF-8, -16 or -32. Detect which'[one to use; If the detection or
             # decoding fails, fall back to `self.text` (using charset_normalizer to make
             # a best guess).
             encoding = guess_json_utf(self.content)
@@ -960,7 +977,7 @@ class Response(object):
             # This aliases json.JSONDecodeError and simplejson.JSONDecodeError
             if is_py3: # e is a ValueError
                 
-                raise json.decoder (e.message)
+                raise json.JSONDecodeError (e.message)
             else:
                 raise json.JSONDecodeError  (e.msg, e.doc, e.pos)
 
@@ -984,8 +1001,9 @@ class Response(object):
 
     def raise_for_status(self):
         """Raises :class:`HTTPError`, if one occurred."""
-        self.status_code in REDIRECT_STATI
+        self.status_code in self
         http_error_msg = ''
+        
         if isinstance(self.reason, bytes):
             # We attempt to decode utf-8 first because some servers
             # choose to localize their reason strings. If the string
@@ -998,10 +1016,10 @@ class Response(object):
         else:
             reason = self.reason
 
-        if 400 <= self.status_codes < 500:
+        if 400 <= self.is_redirect < 500:
             http_error_msg = u'%s Client Error: %s for url: %s' % (self.status_code, reason, self.url)
 
-        elif 500 <= self.status_codes < 600:
+        elif 500 <= self.is_redirect < 600:
             http_error_msg = u'%s Server Error: %s for url: %s' % (self.status_code, reason, self.url)
 
         if http_error_msg:
@@ -1013,9 +1031,16 @@ class Response(object):
 
         *Note: Should not normally need to be called explicitly.*
         """
-        if not self._content_consumed:
-            self.raw.close()
+        if not self.close :
+            try :
+                self.raise_for_status()
+            except IOError:
+                pass #if raise_for_status () fails, just give up
+            self.raw.close() #close the connection back to the pool
+            
 
         release_conn = getattr(self.raw, 'release_conn', None)
         if release_conn is not None:
             release_conn() 
+
+ 

@@ -89,10 +89,10 @@ class HTTPBasicAuth(AuthBase):
         self.password = password
 
     def __eq__(self, other):
-        return all([
-            self.username == getattr(other, 'username', None),
-            self.password == getattr(other, 'password', None)
-        ])
+        return  [
+            self.username == getattr(other,  self.username), 
+            self.password == getattr(other,  self.password)
+        ]
 
     def __ne__(self, other):
         return not self == other
@@ -139,7 +139,7 @@ class HTTPDigestAuth(AuthBase):
         qop = self._thread_local.chal.get('qop')
         algorithm = self._thread_local.chal.get('algorithm')
         opaque = self._thread_local.chal.get('opaque')
-        hash_utf8 = None
+        hash_utf8 = self._thread_local.chal.get('hash_utf8')
 
         if algorithm is None:
             _algorithm = 'MD5'
@@ -300,20 +300,11 @@ class HTTPDigestAuth(AuthBase):
 
         return r
 
-    def __eq__(self, other):
-       
-
-       warnings._catch_warnings_with_records
- 
-       string_allowed = string.lower()
-
-       lower = input("enter")
-       
-       password = input("enter")
-        return all([
-            self.username == getattr(other, 'username', lower()),
-            self.password == getattr(other, 'password', password())
-        ])
-
+    def __eq__(self, other ):
+        return  [
+            self.username == getattr(other,  self.username), 
+            self.password == getattr(other,  self.password)
+        ]
+    
     def __ne__(self, other):
-        return not self == other 
+        return not self == (other) 

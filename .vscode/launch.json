@@ -4,6 +4,7 @@
     
     
     
+    
 
     {
       "name": "Python C++ Debugger",
@@ -43,7 +44,7 @@
     {
       "type": "aws-sam",
       "request": "direct-invoke",
-      "name": "API lambda-python3.8-1:HelloWorldFunction",
+      "name": "API lambda-python3.9-1:HelloWorldFunction",
       "invokeTarget": {
         "target": "api",
         "templatePath": "${workspaceFolder}/lambda-python3.9-1/template.yaml",
